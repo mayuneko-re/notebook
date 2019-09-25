@@ -2,4 +2,5 @@
 
 Jupyter notebooks for reservoir engineers.
 
-- Buckley
+- Buckley-Leverett Solution for water-oil displacing problem
+
