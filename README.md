@@ -1,6 +1,6 @@
 # notebook
 
-Jupyter notebooks (Google Colaboratory) を使って，油層工学のいろいろを解いてみる.
+Jupyter notebooks (Google Colaboratory) for reservoir engineers.
 
 - [Buckley-Leverett Solution for water-oil displacement problem](/Buckley_Leverett_Basic.ipynb)
 
