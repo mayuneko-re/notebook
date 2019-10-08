@@ -4,6 +4,8 @@ import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
 
+np.seterr(divide='ignore', invalid='ignore')
+
 class BL:
     """Store and calculate data for oil-water displacement problem by Buckley-Leverett Solution
     
