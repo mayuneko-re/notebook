@@ -23,10 +23,10 @@ class BL:
         krw (ndarray): Water relative permeability
         kro (ndarray): Oil relative permeability
         fw (ndarray): Fractional flow of water
+        fw_wSF (ndarray): Fractional flow of water with Shock Front
         vD (ndarray): Wave velocity
         vD_sf (float): Shock Front velocity
         Sw_sf (float): Shock Front saturation
-        fw_wSF (ndarray): Fractional flow of water with Shock Front
         tD_BT (float): Dimensionless time at breakthrough
         N_BT (float): Oil production volume at breakthrough, PV
         RF_BT (float): Oil recovery factor, HCPV
@@ -129,7 +129,7 @@ class BL:
         """
         N = self.get_oil_production(tD)
         RF = N / (1 - self.Swc)
-        return N
+        return RF
 
     def get_Sw_profile(self, tD):
         """Get saturation profile at specific dimensionless time
