@@ -45,6 +45,7 @@ class BL:
         self.nw = nw # Exponent for water relative permeability
         self.no = no # Exponent for oil relative permeability
         self.label = label # Label for plot
+        self.with_gravity = False # Flag for gravity effect
 
     def calc(self):
         """Calculate values by Buckley-Leverett Solution
@@ -61,6 +62,8 @@ class BL:
         # Fractional flow of water
         # fw = 1 / (1 + (kro/oil_viscosity) / (krw/water_viscosity))
         self.fw = (self.krw/self.muw) / (self.krw/self.muw + self.kro/self.muo) # To avoid division by zero
+        if self.with_gravity:
+            self.fw = self.fw * (1 - self.kro * self.Ng * np.sin(np.deg2rad(self.theta) ))
 
         # Wave velocity = Derivative of fractional flow of water
         self.vD = np.gradient(self.fw, self.Sw)
@@ -72,10 +75,12 @@ class BL:
 
         # Dimensionless velocity with Shock Front
         self.vD[self.Sw<self.Sw_sf] = self.vD_sf
+        self.vD[self.fw>1] = 0
 
         # Fractional flow of water with Shock Front
         self.fw_wSF = np.where(self.Sw<=self.Sw_sf, self.vD_sf*(self.Sw-self.Swc), self.fw)
-
+        self.fw_wSF[self.fw>1] = 1
+        
         # At breakthrough
         self.tD_BT = 1/self.vD_sf # Dimensionless time
         self.N_BT = self.tD_BT # Oil production
@@ -90,14 +95,17 @@ class BL:
     def get_Sw_outlet(self, tD):
         """Water saturation at outlet
         """
-        f = interpolate.interp1d(self.vD, self.Sw, kind='linear', bounds_error=False)
+        # f = interpolate.interp1d(self.vD, self.Sw, kind='linear', bounds_error=False)
+        f = interpolate.interp1d(self.vD[::-1], self.Sw[::-1], kind='linear', bounds_error=False, assume_sorted=True)
+        # f = interpolate.interp1d(bl.vD[::-1], bl.Sw[::-1], kind='linear', bounds_error=False, assume_sorted=True)
         Sw_out = np.where(tD<=self.tD_BT, self.Swc, f(1/tD))
         return Sw_out
 
     def get_Fw_outlet(self, tD):
         """Fractional flow of water at outlet
         """
-        f = interpolate.interp1d(self.vD, self.fw, kind='linear', bounds_error=False)
+        # f = interpolate.interp1d(self.vD, self.fw, kind='linear', bounds_error=False)
+        f = interpolate.interp1d(self.vD, self.fw_wSF, kind='linear', bounds_error=False)
         fw_out = np.where(tD<=self.tD_BT, 0, f(1/tD))
         return fw_out
 
@@ -130,3 +138,19 @@ class BL:
         xD = [1, *xD]
         Sw = [self.Swc, *self.Sw]
         return xD, Sw
+
+    def enable_gravity(self, theta, k, drho, ut):
+        self.with_gravity = True
+        g = 9.8 # m/s2, Gravitational acceleration
+        self.theta = theta # Dip angle
+        self.k = 10 # d, Absolute permeability
+        self.drho = 0.2 # g/cm3, Difference in density 
+        self.ut = 0.1 # ft/day, Total volumetric flow velocity
+        self.Ng = (self.k / self.muo) * self.drho * g / self.ut  *0.283 # 0.283 is a unit conversion factor 
+        # 1 md = 1e-12 m2
+        # 1 g/cm3 = 1e3 kg/m3
+        # 1 cP = 1e-3 kg/m-s
+        # 1 ft/day = 3.5278e-6 m/s
+    
+    def disable_gravit(self):
+        self.with_gravity = False
