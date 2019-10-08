@@ -28,13 +28,8 @@ class BL:
         vD_sf (float): Shock Front velocity
         Sw_sf (float): Shock Front saturation
         fw_wSF (ndarray): Fractional flow of water with Shock Front
-        tD (ndarray): Dimensionless time for plot
         tD_BT (float): Dimensionless time at breakthrough
-        Sw_out (ndarray): Water saturation at outlet
-        fw_out (ndarray): Fractional flow of water at outlet
-        N (ndarray): Oil production volume, PV
         N_BT (float): Oil production volume at breakthrough, PV
-        RF (ndarray): Oil recovery factor, HCPV
         RF_BT (float): Oil recovery factor, HCPV
     """
     
@@ -82,38 +77,54 @@ class BL:
         # Fractional flow of water with Shock Front
         self.fw_wSF = np.where(self.Sw<=self.Sw_sf, self.vD_sf*(self.Sw-self.Swc), self.fw)
 
-        # Dimensionless time array for plot
-        self.tD = np.linspace(start=0, stop=2, num = 100)
-        
-        # Dimensionless breakthrough time
-        self.tD_BT = 1/self.vD_sf
+        # At breakthrough
+        self.tD_BT = 1/self.vD_sf # Dimensionless time
+        self.N_BT = self.tD_BT # Oil production
+        self.RF_BT = self.N_BT / (1 - self.Swc) # Oil recovery factor
 
-        # Water saturation at outlet
-        f = interpolate.interp1d(self.vD, self.Sw, kind='linear', bounds_error=False)
-        self.Sw_out = np.where(self.tD<=self.tD_BT, self.Swc, f(1/self.tD))
-
-        # Fractional flow of water at outlet
-        f = interpolate.interp1d(self.vD, self.fw, kind='linear', bounds_error=False)
-        self.fw_out = np.where(self.tD<=self.tD_BT, 0, f(1/self.tD))
-
-        # Average water saturation in porous media
-        self.Sw_ave = np.where(self.tD<=self.tD_BT, self.Swc+self.tD, self.Sw_out-(self.fw_out-1)/(1/self.tD))
-
-        # Oil production volume
-        self.N = np.where(self.tD<=self.tD_BT, self.tD, self.Sw_ave-self.Swc)
-        self.N_BT = self.tD_BT # at breakthrough
-
-        # Oil recovery factor
-        self.RF = self.N / (1 - self.Swc)
-        self.RF_BT = self.N_BT / (1 - self.Swc) # at breakthrough
-    
     def __relperm(self, Sn, kr0, n):
         """Relative permeability model (Corey shape)
         """
         kr = kr0 * Sn ** n
         return kr
 
-    def profileSw(self, tD):
+    def get_Sw_outlet(self, tD):
+        """Water saturation at outlet
+        """
+        f = interpolate.interp1d(self.vD, self.Sw, kind='linear', bounds_error=False)
+        Sw_out = np.where(tD<=self.tD_BT, self.Swc, f(1/tD))
+        return Sw_out
+
+    def get_Fw_outlet(self, tD):
+        """Fractional flow of water at outlet
+        """
+        f = interpolate.interp1d(self.vD, self.fw, kind='linear', bounds_error=False)
+        fw_out = np.where(tD<=self.tD_BT, 0, f(1/tD))
+        return fw_out
+
+    def get_Sw_ave(self, tD):
+        """Average water saturation in porous media
+        """
+        Sw_out = self.get_Sw_outlet(tD)
+        fw_out = self.get_Fw_outlet(tD)
+        Sw_ave = np.where(tD<=self.tD_BT, self.Swc+tD, Sw_out-(fw_out-1)/(1/tD))
+        return Sw_ave
+
+    def get_oil_production(self, tD):
+        """Oil production volume
+        """
+        Sw_ave = self.get_Sw_ave(tD)
+        N = np.where(tD<=self.tD_BT, tD, Sw_ave-self.Swc)
+        return N
+
+    def get_oil_RF(self, tD):
+        """Oil recovery factor
+        """
+        N = self.get_oil_production(tD)
+        RF = N / (1 - self.Swc)
+        return N
+
+    def get_Sw_profile(self, tD):
         """Get saturation profile at specific dimensionless time
         """
         xD = self.vD * tD
