@@ -68,7 +68,7 @@ class BL:
         # Wave velocity = Derivative of fractional flow of water
         self.vD = np.gradient(self.fw, self.Sw)
 
-        # Determin Shock Front velocity and saturation
+        # Determine Shock Front velocity and saturation
         slope_fw = (self.fw - 0) / (self.Sw - self.Swc)  # Warning: slope_fw[0] = nan
         self.vD_sf = np.nanmax(slope_fw) # Shock Front velocity
         self.Sw_sf = self.Sw[np.nanargmax(slope_fw)] # Shock Front water saturation
@@ -152,5 +152,5 @@ class BL:
         # 1 cP = 1e-3 kg/m-s
         # 1 ft/day = 3.5278e-6 m/s
     
-    def disable_gravit(self):
+    def disable_gravity(self):
         self.with_gravity = False
