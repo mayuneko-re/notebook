@@ -1,12 +1,14 @@
 # ノートブック
 
-Jupyter notebooks (Google Colaboratory) for reservoir engineers.
+油層工学の Jupyter notebooks (Google Colaboratory). Github上でのレンダリングがうまくいかないときは，[:page_facing_up:nbviewer](https://nbviewer.jupyter.org)がおすすめ．
 
-- [Buckley-Leverett Solution for water-oil displacement problem](/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[(in nbviewer)](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic.ipynb)
-- [Buckley-Leverett Solution for water-oil displacement problem (Sensitivity)](/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[(in nbviewer)](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic_Sensitivity.ipynb)
-- [Buckley-Leverett Solution for water-oil displacement problem with Gravity](/Buckley_Leverett_Gravity.ipynb)
-[(in nbviewer)](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Gravity.ipynb)
+## Buckley-Leverett Solution
+
+- [水油置換問題 :octocat:](/Buckley_Leverett_Basic_Sensitivity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic.ipynb)
+- [水油置換問題（感度解析） :octocat:](/Buckley_Leverett_Basic_Sensitivity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic_Sensitivity.ipynb)
+- [水油置換問題（重力の影響込み） :octocat:](/Buckley_Leverett_Gravity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Gravity.ipynb)
 
 
