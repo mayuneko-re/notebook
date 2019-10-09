@@ -1,4 +1,4 @@
-# ノートブック
+# 油層工学ノートブック
 
 油層工学の Jupyter notebooks (Google Colaboratory). Github上でのレンダリングがうまくいかないときは，[:page_facing_up:nbviewer](https://nbviewer.jupyter.org)がおすすめ．
 
