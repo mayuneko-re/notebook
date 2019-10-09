@@ -1,4 +1,4 @@
-# notebook
+# ノートブック
 
 Jupyter notebooks (Google Colaboratory) for reservoir engineers.
 
