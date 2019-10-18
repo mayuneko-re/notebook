@@ -7,6 +7,7 @@
 *   Stalkup, F. I. (1983). *Miscible displacement*.
 *   Lake, L. W. (1989). *Enhanced oil recovery*. Old Tappan, NJ: Prentice Hall Inc.
 *   Orr, F. M. (2007). *Theory of gas injection processes*. Copenhagen: Tie-Line Publications.
+*   Petrowiki
 
 ## Buckley-Leverett Solution
 
