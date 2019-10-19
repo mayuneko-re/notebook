@@ -18,4 +18,9 @@
 - [水油置換問題（重力の影響込み） :octocat:](/Buckley_Leverett_Gravity.ipynb)
 [:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Gravity.ipynb)
 
+## フラッシュ計算
+
+- [PTフラッシュ計算 :octocat:](/PT_Flash_Calculation.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/PT_Flash_Calculation.ipynb)
+
 
