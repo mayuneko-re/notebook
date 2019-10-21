@@ -11,16 +11,16 @@
 
 ## Buckley-Leverett Solution
 
-- [水油置換問題 :octocat:](/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic.ipynb)
-- [水油置換問題（感度解析） :octocat:](/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Basic_Sensitivity.ipynb)
-- [水油置換問題（重力の影響込み） :octocat:](/Buckley_Leverett_Gravity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/Buckley_Leverett_Gravity.ipynb)
+- [水油置換問題 :octocat:](/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
+- [水油置換問題（感度解析） :octocat:](/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
+- [水油置換問題（重力の影響込み） :octocat:](/colab/Buckley_Leverett_Gravity.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
 
 ## フラッシュ計算
 
-- [PTフラッシュ計算 :octocat:](/PT_Flash_Calculation.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/PT_Flash_Calculation.ipynb)
+- [PTフラッシュ計算 :octocat:](/colab/PT_Flash_Calculation.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
 
 
