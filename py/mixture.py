@@ -41,7 +41,17 @@ class Mixture():
     def __init__(self, feed, Zi):
         self.feed = np.array(feed) # Feed composition instance list
         self.Zi = Zi / np.sum(Zi) # Feed molar fraction
+        self.set_BIPs() # Set zero BIPs
 
+    def set_BIPs(self, kik=None):
+        # Set Binary Interaction Parameters for PR EOS.
+        # Available from literature.
+        if kik is None:
+            self.kik = np.zeros((self.feed.size, self.feed.size))
+        else:
+            self.kik = kik
+            
+            
     def PT_flash(self, P, T, verbose=False):
         # PT Flash
 
@@ -52,7 +62,10 @@ class Mixture():
         self.feedm = self.feed[self.Zi>0]
         self.Zm = self.Zi[self.Zi>0]
         self.Ncm = self.feed[self.Zi>0].size
-
+        # print(self.kik)
+        self.kik = self.kik[np.outer(self.Zi>0,self.Zi>0)].reshape(self.Ncm,self.Ncm)       
+        # print(self.kik)
+        
         # Single component system
         if self.Ncm == 1:
             self.phase = 'single-component-system'
@@ -77,7 +90,6 @@ class Mixture():
         # Mixture parameters are calculated by mixing rules.
         self.Ai = np.array([c.A for c in self.feedm])
         self.Bi = np.array([c.B for c in self.feedm])
-        self.kik = 0 # where, kik's are Binary Interaction Parameter available from literature. 
         self.Aik = np.outer(self.Ai,self.Ai)**0.5 * (1-self.kik)
         
    
