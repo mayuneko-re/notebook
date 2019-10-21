@@ -51,7 +51,7 @@ class Mixture():
         # Get components actually exist
         self.feedm = self.feed[self.Zi>0]
         self.Zm = self.Zi[self.Zi>0]
-        self.Ncm = self.feed[Zi>0].size
+        self.Ncm = self.feed[self.Zi>0].size
 
         # Single component system
         if self.Ncm == 1:
