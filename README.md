@@ -16,6 +16,10 @@
 
 - [PTフラッシュ計算 :octocat:](/colab/PT_Flash_Calculation.ipynb)
 [:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
+- [Ternary Phase Diagram :octocat:](/colab/Ternary_Phase_Diagram.ipynb)
+[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
+
+
 
 
 
