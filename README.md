@@ -24,7 +24,7 @@
 
 
 
-**参考文献**
+## 参考文献
 
 *   Stalkup, F. I. (1983). *Miscible displacement*.
 *   Lake, L. W. (1989). *Enhanced oil recovery*. Old Tappan, NJ: Prentice Hall Inc.
