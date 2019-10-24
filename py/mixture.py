@@ -6,6 +6,21 @@ from scipy import optimize
 
 
 class Components():
+    """Set component.
+
+    Attributes:
+        name (str): Name of component
+        Pc (float): Critical pressure, BarA
+        Tc (float): Critical temperature, degK
+        omega (float): Acentric factor
+        P (float): Pressure condition, BarA
+        T (float): Temperature condition, degK
+        alpha (float): PR EOS parameter at T
+        a (float): PR EOS parameter at T
+        b (float): PR EOS parameter
+        A (float): PR EOS parameter at P and T
+        B (float): PR EOS parameter at P and T
+    """
 
     # Gas constant
     R = 8.3142 # kPa-m3/(Kg-mol-K)
@@ -17,7 +32,12 @@ class Components():
         self.omega = omega # acentric factor
 
     def PREOS(self, P, T):
-        # Calculate Peng-Robinson EOS parameters
+        """Calculate Peng-Robinson EOS parameters at P and T.
+        
+        Args:
+          P (float): Pressure condition, BarA
+          T (float): Temperature condition, degK
+        """
         
         self.P = P # BarA
         self.T = T # degK
@@ -34,6 +54,15 @@ class Components():
 
 
 class Mixture():
+    """Set mixture.
+
+    Attributes:
+        feed (ndarray): ndarray of feed composition list (Instances of Components)
+        Zi (ndarray): Feed molar fraction for each feed component
+        kik (ndarray): Binary interaction parameters matrix for Peng-Robinson EOS
+        P (float): Pressure condition for PT Flash, BarA
+        T (float): Temperature condition for PT Flash, degK
+    """
 
     # Gas constant
     R = 8.3142 # kPa-m3/(Kg-mol-K)
@@ -44,8 +73,9 @@ class Mixture():
         self.set_BIPs() # Set zero BIPs
 
     def set_BIPs(self, kik=None):
-        # Set Binary Interaction Parameters for PR EOS.
-        # Available from literature.
+        """Set Binary Interaction Parameters for PR EOS.
+        Available from literature.
+        """
         if kik is None:
             self.kik = np.zeros((self.feed.size, self.feed.size))
         else:
@@ -62,9 +92,7 @@ class Mixture():
         self.feedm = self.feed[self.Zi>0]
         self.Zm = self.Zi[self.Zi>0]
         self.Ncm = self.feed[self.Zi>0].size
-        # print(self.kik)
         self.kik = self.kik[np.outer(self.Zi>0,self.Zi>0)].reshape(self.Ncm,self.Ncm)       
-        # print(self.kik)
         
         # Single component system
         if self.Ncm == 1:
@@ -143,8 +171,8 @@ class Mixture():
             self.Yi = self.Xi * self.Ki
 
             # Partial fugacity coefficient calculation for Liquid phase and Vapor phase
-            PhiL = self.calc_fugacity(self.Xi, P)
-            PhiV = self.calc_fugacity(self.Yi, P)
+            PhiL = self.calc_fugacity(self.Xi, P, 'vapor')
+            PhiV = self.calc_fugacity(self.Yi, P, 'liquid')
 
             # New K
             Kinew = PhiL / PhiV
@@ -181,13 +209,19 @@ class Mixture():
 
 
 
-    def calc_fugacity(self, xi, P):
+    def calc_fugacity(self, xi, P, phase):
+        # phase: 'vapor' or 'liquid'
 
         # Mixture parameters are calculated by mixing rules.
         A = np.sum(self.Aik * xi * xi.reshape(-1, 1))
         B = np.sum(self.Bi * xi)
 
-        Zj = CardanoEOS(A,B)
+        Zj = find_z_factor(A,B)
+        if phase == 'vapor':
+            Zj = np.max(Zj)
+        elif phase == 'liquid':
+            Zj = np.min(Zj)
+
 
         lnPhi = self.Bi/B*(Zj-1) - np.log(Zj-B) \
             - A/(2*np.sqrt(2)*B)*(2*np.dot(self.Aik, xi)/A-self.Bi/B) \
@@ -212,14 +246,60 @@ class Mixture():
         print('          Mole fraction in vapor phase : {}'.format(self.Yiact))
         print('                              K values : {}'.format(self.Ki))
 
-def CardanoEOS(A,B):
 
-    C2 = B-1
+
+
+
+
+
+
+
+def find_z_factor(A,B):
+    """Solves a Cubic equation for z factor.
+    z^3 + (B-1) z^2 + (A-3*B**2-2*B) z + (B**3+B**2-A*B) = 0 
+
+    Args:
+      A (float): See above.
+      B (float): See above.
+
+    Returns:
+      float: z factor (one or three real values)
+    """
+
+    C2 = B - 1
     C1 = A - 3*B**2 - 2*B
     C0 = B**3 + B**2 - A*B
+    
+    # z = Cardano(C2,C1,C0)
+    z = np.roots([1,C2,C1,C0])
+    z = z[np.isreal(z)].real
+
+    return z
+
+
+
+
+
+
+
+
+
+def Cardano(C2,C1,C0):
+    """Solves a Cubic equation by Cardano method
+    x^3 + C2 x^2 + C1 x + C0 = 0
+
+    Args:
+      C2 (float): See above.
+      C1 (float): See above.
+      C0 (float): See above.
+
+    Returns:
+      float: Root for a Cubic equation
+    """
+
     q = C0 - 1/3*C1*C2 + 2/27*C2**3
     p = C1 - C2**2/3
     D = (q/2)**2 + (p/3)**3
+    x = np.cbrt(-q/2+np.sqrt(D)) + np.cbrt(-q/2-np.sqrt(D)) - C2/3
 
-    return np.cbrt(-q/2+np.sqrt(D)) + np.cbrt(-q/2-np.sqrt(D)) - C2/3
-
+    return x
