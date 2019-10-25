@@ -266,8 +266,8 @@ class Mixture():
             Yi = Xi * Ki # Vapor
 
             # Partial fugacity coefficient calculation for Liquid phase and Vapor phase
-            PhiL, zL = calc_fugacity_coefficient(Aik, Bi, Xi, self.P, 'vapor')
-            PhiV, zV = calc_fugacity_coefficient(Aik, Bi, Yi, self.P, 'liquid')
+            PhiL, zL = calc_fugacity_coefficient(Aik, Bi, Xi, self.P, 'liquid')
+            PhiV, zV = calc_fugacity_coefficient(Aik, Bi, Yi, self.P, 'vapor')
 
             # New K
             Kinew = PhiL / PhiV
