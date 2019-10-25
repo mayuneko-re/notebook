@@ -24,8 +24,7 @@ class Components():
         B (float): PR EOS parameter at P and T
     """
 
-    # Gas constant
-    R = 8.3142 # kPa-m3/(Kg-mol-K)
+    R = 8.3142 # Gas constant, kPa-m3/(Kg-mol-K)
 
     def __init__(self, name, Pc, Tc, omega):
         self.name = name
@@ -53,6 +52,7 @@ class Components():
         self.B = self.b * (self.P*1e5) / (self.R*self.T)
         
         return True
+
 
     def get_z_factor(self, P, T):
         """Calculate z factor at P and T using Peng-Robinson EOS .
@@ -82,6 +82,19 @@ class Components():
         return z
 
 
+    def get_Vm(self, P, T):
+        """Calculate molar volume at P and T using Peng-Robinson EOS
+
+        Args:
+          P (float): Pressure condition, BarA
+          T (float): Temperature condition, degK
+
+        Returns:
+          float: Molar volume Vm, m3/mol
+        """
+        z = self.get_z_factor(P, T)
+        Vm = z * self.R * T / (P*1e5) # m3/mol
+        return Vm
 
 
 
@@ -99,8 +112,7 @@ class Mixture():
         T (float): Temperature condition for PT Flash, degK
     """
 
-    # Gas constant
-    R = 8.3142 # kPa-m3/(Kg-mol-K)
+    R = 8.3142 # Gas constant, kPa-m3/(Kg-mol-K)
 
     def __init__(self, feed):
         self.feed = np.array(feed) # Feed component instance list
@@ -111,6 +123,13 @@ class Mixture():
         """Set or change composition in feed components
         """
         self.Zi = Zi / np.sum(Zi) # Feed molar fraction
+        self.Nc = self.feed.size # No of component
+        
+        if self.feed[self.Zi>0].size == 1:
+            self.isPure = True
+        else:
+            self.isPure = False
+
 
 
     def set_BIPs(self, kik=None):
@@ -120,24 +139,19 @@ class Mixture():
             self.kik = np.zeros((self.feed.size, self.feed.size))
         else:
             self.kik = kik
-            
-            
+
+
     def PT_flash(self, P, T, verbose=False):
-        # PT Flash
+        """PT Flash calculation
+        """
 
         # Pressure and Temperature condition
         self.P = P # BarA
         self.T = T # degK
 
-        # Get components actually exist
-        self.feedm = self.feed[self.Zi>0]
-        self.Zm = self.Zi[self.Zi>0]
-        self.Ncm = self.feed[self.Zi>0].size
-        self.kikm = self.kik[np.outer(self.Zi>0,self.Zi>0)].reshape(self.Ncm,self.Ncm)       
-        
-        # Single component system
-        if self.Ncm == 1:
-            self.phase = 'single-component-system'
+        # Single component -> not mixture
+        if self.isPure:
+            self.phase = 'single-component'
             self.Vact, self.V = np.nan, np.nan
             self.Lact, self.L = np.nan, np.nan
             self.Xiact, self.Xi = np.nan, np.nan
@@ -147,99 +161,37 @@ class Mixture():
                 self.print_result()
             return
 
+        # Get components actually exist        
+        Ncm = self.feed[self.Zi>0].size
 
-        # Initialize PR EOS parameters for each components at P and T condition
-        for c in self.feedm:
-            c.PREOS(self.P, self.T)
-
-        # Initial guess of Ki is made by Wilson equation.
-        self.Ki = np.array([(c.Pc/self.P)*np.exp(5.37*(1+c.omega)*(1-c.Tc/self.T)) 
-                            for c in self.feedm])
-
-        # Mixture parameters are calculated by mixing rules.
-        self.Ai = np.array([c.A for c in self.feedm])
-        self.Bi = np.array([c.B for c in self.feedm])
-        self.Aik = np.outer(self.Ai,self.Ai)**0.5 * (1-self.kikm)
+        if Ncm == self.Nc:
+            # PT Flash
+            Ki, Xi, Yi, V, L, zV, zL = self.PT_flash_core(self.feed, self.Zi, self.kik)
+        else:
+            mask = self.Zi>0
+            feedm = self.feed[mask]
+            Zm = self.Zi[mask]
+            Ncm = self.feed[mask].size
+            kikm = self.kik[np.outer(mask,mask)].reshape(Ncm,Ncm)       
         
-   
-        def f(V, Z, Ki):
-            f = np.sum( (Z*(Ki-1)) / (1+V*(Ki-1)) )
-            return f
-
-        # New values of Ki thus calculated are again used to estimate V and 
-        # thereafter Xi & Yi. Iteration is repeated till there is no further 
-        # change in Ki values.
-        deltaKi = 10
-        tol = 1e-6
-
-        while deltaKi>tol:
-
-            # Single phase
-            if np.all(self.Ki<1):
-                self.phase = 'liquid'
-                self.Vact, self.V = 0, np.nan
-                self.Lact, self.L = 1, np.nan
-                self.Xiact, self.Xi = self.Zi, np.nan
-                self.Yiact, self.Xi = np.nan, np.nan
-                self.Ki = np.nan
-                if verbose:
-                    self.print_result()
-                return
-
-            elif np.all(self.Ki>1):
-                self.phase = 'vapor'
-                self.Vact, self.V = 1, np.nan
-                self.Lact, self.L = 0, np.nan
-                self.Xiact, self.Xi = np.nan, np.nan
-                self.Yiact, self.Yi = self.Zi, np.nan
-                self.Ki = np.nan
-                if verbose:
-                    self.print_result()
-                return
-            
-            # Solve Relative molar volume in vapor phase
-            min = 1/(1-np.max(self.Ki))
-            max = 1/(1-np.min(self.Ki))
-            min = min + np.abs(min)*1e-6
-            max = max - np.abs(max)*1e-6
-            self.V = optimize.bisect(f, min, max, args=(self.Zm, self.Ki))
-            self.L = 1 - self.V
-
-            # Compositions in liquid phase and vapor phase
-            self.Xi = self.Zm / (1+self.V*(self.Ki-1))
-            self.Yi = self.Xi * self.Ki
-
-            # Partial fugacity coefficient calculation for Liquid phase and Vapor phase
-            PhiL = calc_fugacity_coefficient(self.Aik, self.Bi, self.Xi, P, 'vapor')
-            PhiV = calc_fugacity_coefficient(self.Aik, self.Bi,self.Yi, P, 'liquid')
-
-            # New K
-            Kinew = PhiL / PhiV
-            deltaKi = np.sum(np.abs(Kinew/self.Ki-1))
-            self.Ki = Kinew
-
-
-        loc = np.where(self.Zi == 0)[0]
-        self.Xi = np.insert(self.Xi, loc, 0)
-        self.Yi = np.insert(self.Yi, loc, 0)
-        self.Ki = np.insert(self.Ki, loc, np.nan)
+            # PT Flash
+            Ki, Xi, Yi, V, L, zV, zL = self.PT_flash_core(feedm, Zm,  kikm)
+        
+            loc = np.where(self.Zi == 0)[0]
+            Xi = np.insert(Xi, loc, 0)
+            Yi = np.insert(Yi, loc, 0)
+            Ki = np.insert(Ki, loc, np.nan)
+        
+        self.zV = zV
+        self.zL = zL
+        self.VmV = zV * self.R * self.T / (self.P*1e5) # m3/mol
+        self.VmL = zL * self.R * self.T / (self.P*1e5) # m3/mol
 
         # Set outputs
-        # {phase: [Vact, Lact, Xiact, Yiact]}
-        res = {
-            'vapor':    [1     , 0     , np.zeros_like(self.Zi), self.Zi               ],
-            'liquid':   [0     , 1     , self.Zi               , np.zeros_like(self.Zi)],
-            'two-phase':[self.V, self.L, self.Xi               , self.Yi               ]
-            }
-
-        if self.V>=1:
-            out = 'vapor', *res.get('vapor')
-        elif self.V<=0:
-            out = 'liquid', *res.get('liquid')
-        else:
-            out = 'two-phase', *res.get('two-phase')
-
-        self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact = out
+        self.Ki =  Ki
+        self.Xi, self.L, self.zL= Xi, L, zL
+        self.Yi, self.V, self.zV= Yi, V, zV        
+        self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact = self.set_output_actual(Ki, Xi, Yi, V, L)
 
         # Print results
         if verbose:
@@ -248,21 +200,108 @@ class Mixture():
         return True
 
 
+    def PT_flash_core(self, feed, Zi, kik):
+        """PT Flash core engine only for actually exsiting components
+        
+        Args:
+          feed:
+          Zi:
+          kik:
+
+        Returns:
+          Ki: Equilibrium constants 
+          Xi: Mole fraction in liquid phase
+          Yi: Mole fraction in vapor phase
+          V: 
+          L:
+        """
+
+        # Initialize PR EOS parameters for each components at P and T condition
+        for c in feed:
+            c.PREOS(self.P, self.T)
+
+        # Mixture parameters are calculated by mixing rules.
+        Ai = np.array([c.A for c in feed])
+        Bi = np.array([c.B for c in feed])
+        Aik = np.outer(Ai,Ai)**0.5 * (1-kik)
+
+        # New values of Ki thus calculated are again used to estimate V and 
+        # thereafter Xi & Yi. Iteration is repeated till there is no further 
+        # change in Ki values.
+
+        # Initial guess of Ki is made by Wilson equation.
+        Ki = np.array([(c.Pc/self.P)*np.exp(5.37*(1+c.omega)*(1-c.Tc/self.T)) for c in feed])
+
+        def f(V, Z, Ki):
+            f = np.sum( (Z*(Ki-1)) / (1+V*(Ki-1)) )
+            return f
+
+        deltaKi = 10
+        tol = 1e-6
+
+        while deltaKi>tol:
+
+            # Single phase
+            if np.all(Ki<1):
+                # self.phase = 'liquid'
+                L, V = np.inf, -np.inf
+                Xi, Yi = np.nan, np.nan
+                break
+            elif np.all(Ki>1):
+                # self.phase = 'vapor'
+                L, V = -np.inf, np.inf
+                Xi, Yi = np.nan, np.nan
+                break
+
+            # Solve Relative molar volume in vapor phase
+            min = 1/(1-np.max(Ki))
+            max = 1/(1-np.min(Ki))
+            min = min + np.abs(min)*1e-6
+            max = max - np.abs(max)*1e-6
+            V = optimize.bisect(f, min, max, args=(Zi, Ki)) # Vapor 
+            L = 1 - V # Liquid
+
+            # Compositions in liquid phase and vapor phase
+            Xi = Zi / (1+V*(Ki-1)) # Liquid
+            Yi = Xi * Ki # Vapor
+
+            # Partial fugacity coefficient calculation for Liquid phase and Vapor phase
+            PhiL, zL = calc_fugacity_coefficient(Aik, Bi, Xi, self.P, 'vapor')
+            PhiV, zV = calc_fugacity_coefficient(Aik, Bi, Yi, self.P, 'liquid')
+
+            # New K
+            Kinew = PhiL / PhiV
+            deltaKi = np.sum(np.abs(Kinew/Ki-1))
+            Ki = Kinew
+
+        return Ki, Xi, Yi, V, L, zV, zL
 
 
 
+    def set_output_actual(self, Ki, Xi, Yi, V, L):
+        
+        # res = [{phase: [Vact, Lact, Xiact, Yiact], ...}]
+        res = {
+            'vapor':    [1, 0, np.zeros_like(self.Zi), self.Zi               ],
+            'liquid':   [0, 1, self.Zi               , np.zeros_like(self.Zi)],
+            'two-phase':[V, L, Xi                    , Yi                    ]
+            }
 
+        if V>=1:
+            out = 'vapor', *res.get('vapor')
+        elif V<=0:
+            out = 'liquid', *res.get('liquid')
+        else:
+            out = 'two-phase', *res.get('two-phase')
 
-
-
-
+        return out
 
 
     def print_result(self):
         """Print results.
         """
 
-        print('PT Flash calculation converged.')
+        # print('PT Flash calculation converged.')
         print()
         print('                       Feed components : {}'.format([c.name for c in self.feed]))
         print('                    Feed mole fraction : {}'.format(self.Zi))
@@ -272,13 +311,15 @@ class Mixture():
         print('                                 Phase : {}'.format(self.phase))
         print('Relative mole fraction of liquid phase : {:.4f}'.format(self.Lact))
         print(' Relative mole fraction of vapor phase : {:.4f}'.format(self.Vact))
+        print('              z factor of liquid phase : {:.4f}'.format(self.zL))
+        print('               z factor of vapor phase : {:.4f}'.format(self.zV))
+        print('          Molar volume of liquid phase : {:.6f} m3/mol'.format(self.VmL))
+        print('           Molar volume of vapor phase : {:.6f} m3/mol'.format(self.VmV))
         print('         Mole fraction in liquid phase : {}'.format(self.Xiact))
         print('          Mole fraction in vapor phase : {}'.format(self.Yiact))
         print('                              K values : {}'.format(self.Ki))
 
         return True
-
-
 
 
 
@@ -290,22 +331,18 @@ def calc_fugacity_coefficient(Aik, Bi, xi, P, phase):
     B = np.sum(Bi * xi)
 
     Zj = find_z_factor(A,B)
+
     if phase == 'vapor':
         Zj = np.max(Zj)
     elif phase == 'liquid':
         Zj = np.min(Zj)
-
 
     lnPhi = Bi/B*(Zj-1) - np.log(Zj-B) \
         - A/(2*np.sqrt(2)*B)*(2*np.dot(Aik, xi)/A-Bi/B) \
         * np.log( (Zj+(1+np.sqrt(2))*B)/(Zj+(1-np.sqrt(2))*B) )
     Phi = np.exp(lnPhi)
 
-    return Phi
-
-
-
-
+    return Phi, Zj
 
 
 def find_z_factor(A,B):
@@ -329,13 +366,6 @@ def find_z_factor(A,B):
     z = z[np.isreal(z)].real
 
     return z
-
-
-
-
-
-
-
 
 
 def Cardano(C2,C1,C0):
