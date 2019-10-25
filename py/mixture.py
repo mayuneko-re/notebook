@@ -133,7 +133,7 @@ class Mixture():
         self.feedm = self.feed[self.Zi>0]
         self.Zm = self.Zi[self.Zi>0]
         self.Ncm = self.feed[self.Zi>0].size
-        self.kik = self.kik[np.outer(self.Zi>0,self.Zi>0)].reshape(self.Ncm,self.Ncm)       
+        self.kikm = self.kik[np.outer(self.Zi>0,self.Zi>0)].reshape(self.Ncm,self.Ncm)       
         
         # Single component system
         if self.Ncm == 1:
@@ -159,7 +159,7 @@ class Mixture():
         # Mixture parameters are calculated by mixing rules.
         self.Ai = np.array([c.A for c in self.feedm])
         self.Bi = np.array([c.B for c in self.feedm])
-        self.Aik = np.outer(self.Ai,self.Ai)**0.5 * (1-self.kik)
+        self.Aik = np.outer(self.Ai,self.Ai)**0.5 * (1-self.kikm)
         
    
         def f(V, Z, Ki):
