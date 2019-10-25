@@ -4,7 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
 
-
+# ------------------------#
+#      Componnents        #
+# ------------------------#
 class Components():
     """Set component.
 
@@ -31,6 +33,7 @@ class Components():
         self.Tc = Tc # degK
         self.omega = omega # acentric factor
 
+
     def PREOS(self, P, T):
         """Calculate Peng-Robinson EOS parameters at P and T.
         
@@ -42,7 +45,7 @@ class Components():
         self.P = P # BarA
         self.T = T # degK
 
-        m = 0.37464 + 1.54226*self.omega -0.26992*self.omega**2
+        m = 0.37464 + 1.54226*self.omega - 0.26992*self.omega**2
         self.alpha = (1 + m*(1-np.sqrt(T/self.Tc)))**2
         self.a = 0.45724*(self.R*self.Tc)**2*self.alpha/(self.Pc*1e5)
         self.b = 0.07780*self.R*self.Tc/(self.Pc*1e5)
@@ -51,13 +54,45 @@ class Components():
         
         return True
 
+    def get_z_factor(self, P, T):
+        """Calculate z factor at P and T using Peng-Robinson EOS .
+        
+        Args:
+          P (float): Pressure condition, BarA
+          T (float): Temperature condition, degK
+
+        Returns:
+          float: z factor (one or three real values)
+        """
+
+        self.P = P # BarA
+        self.T = T # degK
+
+        self.PREOS(P,T)
+
+        z = find_z_factor(self.A,self.B)
+
+        """
+        if phase == 'vapor':
+            Zj = np.max(Zj)
+        elif phase == 'liquid':
+            Zj = np.min(Zj)
+        """
+
+        return z
 
 
+
+
+
+# ------------------------#
+#        Mixture          #
+# ------------------------#
 class Mixture():
     """Set mixture.
 
     Attributes:
-        feed (ndarray): ndarray of feed composition list (Instances of Components)
+        feed (ndarray): ndarray of feed component list (Instances of Components Class)
         Zi (ndarray): Feed molar fraction for each feed component
         kik (ndarray): Binary interaction parameters matrix for Peng-Robinson EOS
         P (float): Pressure condition for PT Flash, BarA
@@ -67,14 +102,19 @@ class Mixture():
     # Gas constant
     R = 8.3142 # kPa-m3/(Kg-mol-K)
 
-    def __init__(self, feed, Zi):
-        self.feed = np.array(feed) # Feed composition instance list
-        self.Zi = Zi / np.sum(Zi) # Feed molar fraction
+    def __init__(self, feed):
+        self.feed = np.array(feed) # Feed component instance list
         self.set_BIPs() # Set zero BIPs
 
+
+    def set_composition(self, Zi):
+        """Set or change composition in feed components
+        """
+        self.Zi = Zi / np.sum(Zi) # Feed molar fraction
+
+
     def set_BIPs(self, kik=None):
-        """Set Binary Interaction Parameters for PR EOS.
-        Available from literature.
+        """Set Binary Interaction Parameters for PR EOS. Available from literature.
         """
         if kik is None:
             self.kik = np.zeros((self.feed.size, self.feed.size))
@@ -85,6 +125,7 @@ class Mixture():
     def PT_flash(self, P, T, verbose=False):
         # PT Flash
 
+        # Pressure and Temperature condition
         self.P = P # BarA
         self.T = T # degK
 
@@ -133,7 +174,7 @@ class Mixture():
 
         while deltaKi>tol:
 
-            # Single component system
+            # Single phase
             if np.all(self.Ki<1):
                 self.phase = 'liquid'
                 self.Vact, self.V = 0, np.nan
@@ -156,13 +197,11 @@ class Mixture():
                     self.print_result()
                 return
             
-            # Relative molar volume in vapor phase
-            # self.V = optimize.fsolve(f, 0.5, args=(self.Zi, self.Ki))
+            # Solve Relative molar volume in vapor phase
             min = 1/(1-np.max(self.Ki))
             max = 1/(1-np.min(self.Ki))
             min = min + np.abs(min)*1e-6
             max = max - np.abs(max)*1e-6
-
             self.V = optimize.bisect(f, min, max, args=(self.Zm, self.Ki))
             self.L = 1 - self.V
 
@@ -171,67 +210,58 @@ class Mixture():
             self.Yi = self.Xi * self.Ki
 
             # Partial fugacity coefficient calculation for Liquid phase and Vapor phase
-            PhiL = self.calc_fugacity(self.Xi, P, 'vapor')
-            PhiV = self.calc_fugacity(self.Yi, P, 'liquid')
+            PhiL = calc_fugacity_coefficient(self.Aik, self.Bi, self.Xi, P, 'vapor')
+            PhiV = calc_fugacity_coefficient(self.Aik, self.Bi,self.Yi, P, 'liquid')
 
             # New K
             Kinew = PhiL / PhiV
             deltaKi = np.sum(np.abs(Kinew/self.Ki-1))
             self.Ki = Kinew
 
+
         loc = np.where(self.Zi == 0)[0]
         self.Xi = np.insert(self.Xi, loc, 0)
         self.Yi = np.insert(self.Yi, loc, 0)
         self.Ki = np.insert(self.Ki, loc, np.nan)
 
-        if self.V >=1:
-            self.phase = 'vapor'
-            self.Vact = 1
-            self.Lact = 0
-            self.Xiact = np.zeros_like(self.Zi)
-            self.Yiact = self.Zi
-        elif self.V<=0:
-            self.phase = 'liquid'
-            self.Vact = 0
-            self.Lact = 1
-            self.Xiact = self.Zi
-            self.Yiact = np.zeros_like(self.Zi)
-        else:
-            self.phase = 'two-phase'
-            self.Vact = self.V
-            self.Lact = self.L
-            self.Xiact = self.Xi
-            self.Yiact = self.Yi
+        # Set outputs
+        # {phase: [Vact, Lact, Xiact, Yiact]}
+        res = {
+            'vapor':    [1     , 0     , np.zeros_like(self.Zi), self.Zi               ],
+            'liquid':   [0     , 1     , self.Zi               , np.zeros_like(self.Zi)],
+            'two-phase':[self.V, self.L, self.Xi               , self.Yi               ]
+            }
 
+        if self.V>=1:
+            out = 'vapor', *res.get('vapor')
+        elif self.V<=0:
+            out = 'liquid', *res.get('liquid')
+        else:
+            out = 'two-phase', *res.get('two-phase')
+
+        self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact = out
+
+        # Print results
         if verbose:
             self.print_result()
             
+        return True
 
 
 
-    def calc_fugacity(self, xi, P, phase):
-        # phase: 'vapor' or 'liquid'
-
-        # Mixture parameters are calculated by mixing rules.
-        A = np.sum(self.Aik * xi * xi.reshape(-1, 1))
-        B = np.sum(self.Bi * xi)
-
-        Zj = find_z_factor(A,B)
-        if phase == 'vapor':
-            Zj = np.max(Zj)
-        elif phase == 'liquid':
-            Zj = np.min(Zj)
 
 
-        lnPhi = self.Bi/B*(Zj-1) - np.log(Zj-B) \
-            - A/(2*np.sqrt(2)*B)*(2*np.dot(self.Aik, xi)/A-self.Bi/B) \
-            * np.log( (Zj+(1+np.sqrt(2))*B)/(Zj+(1-np.sqrt(2))*B) )
-        Phi = np.exp(lnPhi)
 
-        return Phi
+
+
+
+
 
 
     def print_result(self):
+        """Print results.
+        """
+
         print('PT Flash calculation converged.')
         print()
         print('                       Feed components : {}'.format([c.name for c in self.feed]))
@@ -246,8 +276,32 @@ class Mixture():
         print('          Mole fraction in vapor phase : {}'.format(self.Yiact))
         print('                              K values : {}'.format(self.Ki))
 
+        return True
 
 
+
+
+
+def calc_fugacity_coefficient(Aik, Bi, xi, P, phase):
+    # phase: 'vapor' or 'liquid'
+
+    # Mixture parameters are calculated by mixing rules.
+    A = np.sum(Aik * xi * xi.reshape(-1, 1))
+    B = np.sum(Bi * xi)
+
+    Zj = find_z_factor(A,B)
+    if phase == 'vapor':
+        Zj = np.max(Zj)
+    elif phase == 'liquid':
+        Zj = np.min(Zj)
+
+
+    lnPhi = Bi/B*(Zj-1) - np.log(Zj-B) \
+        - A/(2*np.sqrt(2)*B)*(2*np.dot(Aik, xi)/A-Bi/B) \
+        * np.log( (Zj+(1+np.sqrt(2))*B)/(Zj+(1-np.sqrt(2))*B) )
+    Phi = np.exp(lnPhi)
+
+    return Phi
 
 
 
