@@ -123,10 +123,13 @@ class Mixture():
         """Set or change composition in feed components
         """
         self.Zi = Zi / np.sum(Zi) # Feed molar fraction
+        self.Zi[self.Zi<1e-4] = 0
+        self.Zi = self.Zi / np.sum(self.Zi)
         self.Nc = self.feed.size # No of component
         
         if self.feed[self.Zi>0].size == 1:
             self.isPure = True
+            self.feed_pure = self.feed[self.Zi>0][0]
         else:
             self.isPure = False
 
@@ -151,12 +154,27 @@ class Mixture():
 
         # Single component -> not mixture
         if self.isPure:
-            self.phase = 'single-component'
-            self.Vact, self.V = np.nan, np.nan
-            self.Lact, self.L = np.nan, np.nan
-            self.Xiact, self.Xi = np.nan, np.nan
-            self.Yiact, self.Yi = np.nan, np.nan
+            # print(self.feed_pure)
+            fp = self.feed_pure
+            # Geuss Ki
+            Ki = (fp.Pc/self.P)*np.exp(5.37*(1+fp.omega)*(1-fp.Tc/self.T))
+            zM = fp.get_z_factor(self.P, self.T)[0]
+            Vm = fp.get_Vm(self.P, self.T)
+            zL, zV = np.nan, np.nan
+            self.Xi, self.Yi = np.nan, np.nan
+            
+            if Ki>1:    
+                self.V, self.L = np.inf, -np.inf
+            else:
+                self.V, self.L = -np.inf, np.inf
+
+            self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact, self.zLact, self.zVact = \
+                self.set_output_actual(Ki, self.Xi, self.Yi, self.V, self.L, zM, zL, zV)
             self.Ki = np.nan
+ 
+            self.VmVact = self.zVact * self.R * self.T / (self.P*1e5) # m3/mol
+            self.VmLact = self.zLact * self.R * self.T / (self.P*1e5) # m3/mol
+
             if verbose:
                 self.print_result()
             return
