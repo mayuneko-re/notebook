@@ -193,12 +193,18 @@ class Mixture():
             kikm = self.kik[np.outer(mask,mask)].reshape(Ncm,Ncm)       
         
             # PT Flash
-            Ki, Xi, Yi, V, L, zV, zL, zM = self.PT_flash_core(feedm, Zm,  kikm)
+            Kim, Xim, Yim, V, L, zV, zL, zM = self.PT_flash_core(feedm, Zm,  kikm)
         
-            loc = np.where(self.Zi == 0)[0]
-            Xi = np.insert(Xi, loc, 0)
-            Yi = np.insert(Yi, loc, 0)
-            Ki = np.insert(Ki, loc, np.nan)
+            # loc = np.where(self.Zi == 0)[0]
+            # Xi = np.insert(Xi, loc, 0)
+            # Yi = np.insert(Yi, loc, 0)
+            # Ki = np.insert(Ki, loc, np.nan)
+            loc = np.where(self.Zi != 0)[0]
+            Xi, Yi = np.zeros_like(self.Zi), np.zeros_like(self.Zi)
+            Ki = np.zeros_like(self.Zi) * np.nan
+            Xi[loc] = Xim
+            Yi[loc] = Yim
+            Ki[loc] = Kim
         
         # print('z factor of mixture if one phase',zM)
 
