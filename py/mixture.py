@@ -166,7 +166,7 @@ class Mixture():
 
         if Ncm == self.Nc:
             # PT Flash
-            Ki, Xi, Yi, V, L, zV, zL = self.PT_flash_core(self.feed, self.Zi, self.kik)
+            Ki, Xi, Yi, V, L, zV, zL, zM = self.PT_flash_core(self.feed, self.Zi, self.kik)
         else:
             mask = self.Zi>0
             feedm = self.feed[mask]
@@ -175,29 +175,32 @@ class Mixture():
             kikm = self.kik[np.outer(mask,mask)].reshape(Ncm,Ncm)       
         
             # PT Flash
-            Ki, Xi, Yi, V, L, zV, zL = self.PT_flash_core(feedm, Zm,  kikm)
+            Ki, Xi, Yi, V, L, zV, zL, zM = self.PT_flash_core(feedm, Zm,  kikm)
         
             loc = np.where(self.Zi == 0)[0]
             Xi = np.insert(Xi, loc, 0)
             Yi = np.insert(Yi, loc, 0)
             Ki = np.insert(Ki, loc, np.nan)
         
-        self.zV = zV
-        self.zL = zL
-        self.VmV = zV * self.R * self.T / (self.P*1e5) # m3/mol
-        self.VmL = zL * self.R * self.T / (self.P*1e5) # m3/mol
+        # print('z factor of mixture if one phase',zM)
 
         # Set outputs
         self.Ki =  Ki
-        self.Xi, self.L, self.zL= Xi, L, zL
-        self.Yi, self.V, self.zV= Yi, V, zV        
-        self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact = self.set_output_actual(Ki, Xi, Yi, V, L)
+        self.Xi, self.L, self.zL = Xi, L, zL
+        self.Yi, self.V, self.zV = Yi, V, zV        
+        self.VmV = zV * self.R * self.T / (self.P*1e5) # m3/mol
+        self.VmL = zL * self.R * self.T / (self.P*1e5) # m3/mol
+        self.phase, self.Vact, self.Lact, self.Xiact, self.Yiact, self.zLact, self.zVact = \
+            self.set_output_actual(Ki, Xi, Yi, V, L, zM, zL, zV)
+        self.VmVact = self.zVact * self.R * self.T / (self.P*1e5) # m3/mol
+        self.VmLact = self.zLact * self.R * self.T / (self.P*1e5) # m3/mol
 
         # Print results
         if verbose:
             self.print_result()
             
         return True
+
 
 
     def PT_flash_core(self, feed, Zi, kik):
@@ -222,8 +225,10 @@ class Mixture():
 
         # Mixture parameters are calculated by mixing rules.
         Ai = np.array([c.A for c in feed])
+        # print(Ai)
         Bi = np.array([c.B for c in feed])
         Aik = np.outer(Ai,Ai)**0.5 * (1-kik)
+        # print(Aik)
 
         # New values of Ki thus calculated are again used to estimate V and 
         # thereafter Xi & Yi. Iteration is repeated till there is no further 
@@ -274,17 +279,26 @@ class Mixture():
             deltaKi = np.sum(np.abs(Kinew/Ki-1))
             Ki = Kinew
 
-        return Ki, Xi, Yi, V, L, zV, zL
+        if V>1:
+            _, zM = calc_fugacity_coefficient(Aik, Bi, Zi, self.P, 'vapor')
+        elif V<0:
+            _, zM = calc_fugacity_coefficient(Aik, Bi, Zi, self.P, 'liquid')
+        else:
+            zM = np.nan
+
+        return Ki, Xi, Yi, V, L, zV, zL, zM
 
 
 
-    def set_output_actual(self, Ki, Xi, Yi, V, L):
+
+
+    def set_output_actual(self, Ki, Xi, Yi, V, L, zM, zL, zV):
         
-        # res = [{phase: [Vact, Lact, Xiact, Yiact], ...}]
+        # res = [{phase: [Vact, Lact, Xiact, Yiact, zLact, zVact], ...}]
         res = {
-            'vapor':    [1, 0, np.zeros_like(self.Zi), self.Zi               ],
-            'liquid':   [0, 1, self.Zi               , np.zeros_like(self.Zi)],
-            'two-phase':[V, L, Xi                    , Yi                    ]
+            'vapor':    [1, 0, np.nan , self.Zi, np.nan, zM    ],
+            'liquid':   [0, 1, self.Zi, np.nan , zM    , np.nan],
+            'two-phase':[V, L, Xi     , Yi     , zL    , zV    ]
             }
 
         if V>=1:
@@ -311,10 +325,10 @@ class Mixture():
         print('                                 Phase : {}'.format(self.phase))
         print('Relative mole fraction of liquid phase : {:.4f}'.format(self.Lact))
         print(' Relative mole fraction of vapor phase : {:.4f}'.format(self.Vact))
-        print('              z factor of liquid phase : {:.4f}'.format(self.zL))
-        print('               z factor of vapor phase : {:.4f}'.format(self.zV))
-        print('          Molar volume of liquid phase : {:.6f} m3/mol'.format(self.VmL))
-        print('           Molar volume of vapor phase : {:.6f} m3/mol'.format(self.VmV))
+        print('              z factor of liquid phase : {:.4f}'.format(self.zLact))
+        print('               z factor of vapor phase : {:.4f}'.format(self.zVact))
+        print('          Molar volume of liquid phase : {:.6f} m3/mol'.format(self.VmLact))
+        print('           Molar volume of vapor phase : {:.6f} m3/mol'.format(self.VmVact))
         print('         Mole fraction in liquid phase : {}'.format(self.Xiact))
         print('          Mole fraction in vapor phase : {}'.format(self.Yiact))
         print('                              K values : {}'.format(self.Ki))
@@ -328,6 +342,9 @@ def calc_fugacity_coefficient(Aik, Bi, xi, P, phase):
 
     # Mixture parameters are calculated by mixing rules.
     A = np.sum(Aik * xi * xi.reshape(-1, 1))
+
+    # print(xi,A)
+
     B = np.sum(Bi * xi)
 
     Zj = find_z_factor(A,B)
