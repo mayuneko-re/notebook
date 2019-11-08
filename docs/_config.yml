@@ -1,1 +1,6 @@
 theme: jekyll-theme-minimal
+encding: utf-8
+title: [The title of your site]
+description: [A short description of your site's purpose]
+plugins:
+  - jekyll-sitemap
