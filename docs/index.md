@@ -15,6 +15,15 @@
 - [Ternary Phase Diagram](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
 
 
+### メモ
+
+<ul class="posts">
+  {% for post in site.posts %}
+    <li>
+      <a href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
 
 ## 参考文献
 
@@ -23,12 +32,3 @@
 *   Orr, F. M. (2007). *Theory of gas injection processes*. Copenhagen: Tie-Line Publications.
 *   [PetroWiki](https://petrowiki.org/PetroWiki)
 
-<!---
-<ul class="posts">
-  {% for post in site.posts %}
-    <li>
-      <span>{{ post.date | date_to_string }}</span> » <a href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
-    </li>
-  {% endfor %}
-</ul>
--->
