@@ -5,19 +5,14 @@
 
 ## Buckley-Leverett Solution
 
-- [水油置換問題 :octocat:](/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
-- [水油置換問題（感度解析） :octocat:](/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
-- [水油置換問題（重力の影響込み） :octocat:](/colab/Buckley_Leverett_Gravity.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
+- [水油置換問題](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
+- [水油置換問題（感度解析）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
+- [水油置換問題（重力の影響込み）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
 
 ## フラッシュ計算
 
-- [PTフラッシュ計算 :octocat:](/colab/PT_Flash_Calculation.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
-- [Ternary Phase Diagram :octocat:](/colab/Ternary_Phase_Diagram.ipynb)
-[:page_facing_up:](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
+- [PTフラッシュ計算](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
+- [Ternary Phase Diagram](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
 
 
 
