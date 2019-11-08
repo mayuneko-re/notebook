@@ -1,11 +1,3 @@
-<!---
-  コメント
--->
-
-{% comment %}
-comment
-{% endcomment %}
-
 理論は教科書に書いてある．
 自分でやってみればもっと分かるはず．
 油層工学に関する面白そうな話を Jupyter notebooks (Google Colaboratory) で実装してみる．
@@ -31,15 +23,7 @@ comment
 *   Orr, F. M. (2007). *Theory of gas injection processes*. Copenhagen: Tie-Line Publications.
 *   [PetroWiki](https://petrowiki.org/PetroWiki)
 
-
-<ul>
-  {% for post in site.posts %}
-    <li>
-      <a href="{{ post.url }}">{{ post.title }}</a>
-    </li>
-  {% endfor %}
-</ul>
-
+<!---
 <ul class="posts">
   {% for post in site.posts %}
     <li>
@@ -47,3 +31,4 @@ comment
     </li>
   {% endfor %}
 </ul>
+-->
