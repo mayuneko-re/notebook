@@ -15,7 +15,7 @@
 - [Ternary Phase Diagram](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
 
 
-### メモ
+## メモ
 
 <ul class="posts">
   {% for post in site.posts %}
