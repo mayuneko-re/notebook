@@ -3,6 +3,7 @@ encding: utf-8
 title: MAYUNEKO
 description: 油層工学のノートブック
 url:
+baseurl: "/notebook"
 repository: https://github.com/mayuneko-re/notebook
 plugins:
   - jekyll-sitemap
