@@ -2,5 +2,7 @@ theme: jekyll-theme-minimal
 encding: utf-8
 title: MAYUNEKO
 description: 油層工学のノートブック
+url:
+repository: https://github.com/mayuneko-re/notebook
 plugins:
   - jekyll-sitemap
