@@ -4,7 +4,7 @@ title: MAYUNEKO
 description: 油層工学のノートブック
 url:
 baseurl: "/notebook"
-logo: // "assets/img/logo.png"
+# logo: "assets/img/logo.png"
 repository: https://github.com/mayuneko-re/notebook
 plugins:
   - jekyll-sitemap
