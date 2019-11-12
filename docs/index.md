@@ -8,6 +8,7 @@
 - [水油置換問題](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
 - [水油置換問題（感度解析）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
 - [水油置換問題（重力の影響込み）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
+- [Koval法によるミシブル置換のモデル化](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Koval_method_for_miscible_displacement.ipynb)
 
 ## フラッシュ計算
 
