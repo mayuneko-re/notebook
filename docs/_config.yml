@@ -1,7 +1,7 @@
 theme: jekyll-theme-minimal
 encding: utf-8
-title: MAYUNEKO
-description: 油層工学のノートブック
+title: 油層ノート
+description: 油層工学のノート
 url:
 baseurl: "/notebook"
 # logo: "assets/img/logo.png"
