@@ -60,10 +60,7 @@ class BL:
         self.kro = self.__relperm(Sn=1-self.Swn, kr0=self.kro0, n=self.no) # Oil
 
         # Fractional flow of water
-        # fw = 1 / (1 + (kro/oil_viscosity) / (krw/water_viscosity))
-        self.fw = (self.krw/self.muw) / (self.krw/self.muw + self.kro/self.muo) # To avoid division by zero
-        if self.with_gravity:
-            self.fw = self.fw * (1 - self.kro * self.Ng * np.sin(np.deg2rad(self.theta) ))
+        self.fw = self.__calc_fw()
 
         # Wave velocity = Derivative of fractional flow of water
         self.vD = np.gradient(self.fw, self.Sw)
@@ -91,6 +88,12 @@ class BL:
         """
         kr = kr0 * Sn ** n
         return kr
+
+    def __calc_fw(self):
+        """Fractional flow of water
+        """
+        # fw = 1 / (1 + (kro/oil_viscosity) / (krw/water_viscosity))
+        self.fw = (self.krw/self.muw) / (self.krw/self.muw + self.kro/self.muo) # To avoid division by zero
 
     def get_Sw_outlet(self, tD):
         """Water saturation at outlet
@@ -138,19 +141,3 @@ class BL:
         xD = [1, *xD]
         Sw = [self.Swc, *self.Sw]
         return xD, Sw
-
-    def enable_gravity(self, theta, k, drho, ut):
-        self.with_gravity = True
-        g = 9.8 # m/s2, Gravitational acceleration
-        self.theta = theta # Dip angle
-        self.k = 10 # d, Absolute permeability
-        self.drho = 0.2 # g/cm3, Difference in density 
-        self.ut = 0.1 # ft/day, Total volumetric flow velocity
-        self.Ng = (self.k / self.muo) * self.drho * g / self.ut  *0.283 # 0.283 is a unit conversion factor 
-        # 1 md = 1e-12 m2
-        # 1 g/cm3 = 1e3 kg/m3
-        # 1 cP = 1e-3 kg/m-s
-        # 1 ft/day = 3.5278e-6 m/s
-    
-    def disable_gravity(self):
-        self.with_gravity = False
