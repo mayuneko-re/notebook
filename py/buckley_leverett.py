@@ -93,7 +93,8 @@ class BL:
         """Fractional flow of water
         """
         # fw = 1 / (1 + (kro/oil_viscosity) / (krw/water_viscosity))
-        self.fw = (self.krw/self.muw) / (self.krw/self.muw + self.kro/self.muo) # To avoid division by zero
+        fw = (self.krw/self.muw) / (self.krw/self.muw + self.kro/self.muo) # To avoid division by zero
+        return fw
 
     def get_Sw_outlet(self, tD):
         """Water saturation at outlet
