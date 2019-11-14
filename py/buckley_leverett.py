@@ -60,7 +60,7 @@ class BL:
         self.kro = self.__relperm(Sn=1-self.Swn, kr0=self.kro0, n=self.no) # Oil
 
         # Fractional flow of water
-        self.fw = self.__calc_fw()
+        self.fw = self.calc_fw()
 
         # Wave velocity = Derivative of fractional flow of water
         self.vD = np.gradient(self.fw, self.Sw)
@@ -89,7 +89,7 @@ class BL:
         kr = kr0 * Sn ** n
         return kr
 
-    def __calc_fw(self):
+    def calc_fw(self):
         """Fractional flow of water
         """
         # fw = 1 / (1 + (kro/oil_viscosity) / (krw/water_viscosity))
