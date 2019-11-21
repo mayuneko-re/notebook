@@ -295,12 +295,12 @@ class Mixture():
                 break
 
             # Solve Relative molar volume in vapor phase
-            # min = 1/(1-np.max(Ki))
-            # max = 1/(1-np.min(Ki))
-            # min = min + np.abs(min)*1e-6
-            # max = max - np.abs(max)*1e-6
-            # V = optimize.bisect(f, min, max, args=(Zi, Ki)) # Bisection method for Vapor 
-            V = optimize.newton(f, 0.5, df, args=(Zi, Ki)) # Newton-Raphson method for Vapor 
+            min = 1/(1-np.max(Ki))
+            max = 1/(1-np.min(Ki))
+            min = min + np.abs(min)*1e-6
+            max = max - np.abs(max)*1e-6
+            V = optimize.bisect(f, min, max, args=(Zi, Ki)) # Bisection method for Vapor 
+            # V = optimize.newton(f, 0.5, df, args=(Zi, Ki)) # Newton-Raphson method for Vapor 
             # V = optimize.newton(f, V, df, args=(Zi, Ki)) # Newton-Raphson method for Vapor 
             L = 1 - V # Liquid
 
