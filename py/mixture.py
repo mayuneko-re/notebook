@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
+# from numba import jit
 
 # ------------------------#
 #      Componnents        #
@@ -50,7 +51,7 @@ class Components():
         self.b = 0.07780*self.R*self.Tc/(self.Pc*1e5)
         self.A = self.a * (self.P*1e5) / (self.R*self.T)**2
         self.B = self.b * (self.P*1e5) / (self.R*self.T)
-        
+
         return True
 
 
@@ -144,7 +145,7 @@ class Mixture():
             self.kik = kik
 
 
-    def PT_flash(self, P, T, verbose=False):
+    def PT_flash(self, P, T, initialize_k=True, verbose=False):
         """PT Flash calculation
         """
 
@@ -184,7 +185,7 @@ class Mixture():
 
         if Ncm == self.Nc:
             # PT Flash
-            Ki, Xi, Yi, V, L, zV, zL, zM = self.PT_flash_core(self.feed, self.Zi, self.kik)
+            Ki, Xi, Yi, V, L, zV, zL, zM = self.PT_flash_core(self.feed, self.Zi, self.kik, initialize_k=initialize_k)
         else:
             mask = self.Zi>0
             feedm = self.feed[mask]
@@ -193,7 +194,7 @@ class Mixture():
             kikm = self.kik[np.outer(mask,mask)].reshape(Ncm,Ncm)       
         
             # PT Flash
-            Kim, Xim, Yim, V, L, zV, zL, zM = self.PT_flash_core(feedm, Zm,  kikm)
+            Kim, Xim, Yim, V, L, zV, zL, zM = self.PT_flash_core(feedm, Zm, kikm, initialize_k=initialize_k)
         
             # loc = np.where(self.Zi == 0)[0]
             # Xi = np.insert(Xi, loc, 0)
@@ -226,8 +227,8 @@ class Mixture():
         return True
 
 
-
-    def PT_flash_core(self, feed, Zi, kik):
+    
+    def PT_flash_core(self, feed, Zi, kik, initialize_k=True):
         """PT Flash core engine only for actually exsiting components
         
         Args:
@@ -258,15 +259,26 @@ class Mixture():
         # thereafter Xi & Yi. Iteration is repeated till there is no further 
         # change in Ki values.
 
-        # Initial guess of Ki is made by Wilson equation.
-        Ki = np.array([(c.Pc/self.P)*np.exp(5.37*(1+c.omega)*(1-c.Tc/self.T)) for c in feed])
+        if initialize_k is True:
+            # Initial guess of Ki is made by Wilson equation.
+            Ki = np.array([(c.Pc/self.P)*np.exp(5.37*(1+c.omega)*(1-c.Tc/self.T)) for c in feed])
+        else:
+            # Otherwise, set Ki explicitly
+            Ki = initialize_k
 
         def f(V, Z, Ki):
             f = np.sum( (Z*(Ki-1)) / (1+V*(Ki-1)) )
             return f
 
+        def df(V, Z, Ki):
+            # For Newton-Raphson method
+            df = -np.sum( (Z*(Ki-1)**2) / (1+V*(Ki-1))**2 )
+            return df
+
         deltaKi = 10
         tol = 1e-6
+
+        V = 0.5
 
         while deltaKi>tol:
 
@@ -283,11 +295,13 @@ class Mixture():
                 break
 
             # Solve Relative molar volume in vapor phase
-            min = 1/(1-np.max(Ki))
-            max = 1/(1-np.min(Ki))
-            min = min + np.abs(min)*1e-6
-            max = max - np.abs(max)*1e-6
-            V = optimize.bisect(f, min, max, args=(Zi, Ki)) # Vapor 
+            # min = 1/(1-np.max(Ki))
+            # max = 1/(1-np.min(Ki))
+            # min = min + np.abs(min)*1e-6
+            # max = max - np.abs(max)*1e-6
+            # V = optimize.bisect(f, min, max, args=(Zi, Ki)) # Bisection method for Vapor 
+            # V = optimize.newton(f, 0.5, df, args=(Zi, Ki)) # Newton-Raphson method for Vapor 
+            V = optimize.newton(f, V, df, args=(Zi, Ki)) # Newton-Raphson method for Vapor 
             L = 1 - V # Liquid
 
             # Compositions in liquid phase and vapor phase
