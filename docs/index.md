@@ -14,6 +14,7 @@
 
 - [PTフラッシュ計算](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
 - [Ternary Phase Diagram](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
+- [マルチセルモデルによるCO2圧入に伴う油層流体の変化](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Multi_Cell_Model_for_CO2_core_flooding.ipynb)
 
 
 ## メモ
