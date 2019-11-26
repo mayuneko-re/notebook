@@ -2,18 +2,18 @@
 それじゃあやってみよう，ということで，油層工学に関する面白そうな話を実装してみるサイト．
 興味は，多相流動とか，EORとか，もっと言えばCO2-EORとか．
 
+## 油層ノート
 
 - [Buckley-Leverettの解法で水油置換問題を解く](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
 - [Buckley-Leverettの解法で水油置換問題を解く（その２：粘性と総体浸透率の感度解析）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
 - [Buckley-Leverettの解法で水油置換問題を解く（その３：重力の影響込み）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
 - [Koval法でミシブル置換をモデルする](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Koval_method_for_miscible_displacement.ipynb)
-
-
 - [PTフラッシュ計算をしてみる](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
 - [Ternary Phase Diagramを描いてみる](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Ternary_Phase_Diagram.ipynb)
 - [マルチセルモデルによるCO2圧入に伴う油層流体の変化をみる](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Multi_Cell_Model_for_CO2_core_flooding.ipynb)
 
 
+## メモ等の置き場
 
 <ul class="posts">
   {% for post in site.posts %}
