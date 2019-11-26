@@ -1,7 +1,6 @@
 理論は教科書に書いてある．
-自分でやってみればもっと分かるはず．
-油層工学に関する面白そうな話を Jupyter notebooks (Google Colaboratory) で実装してみる．
-
+それじゃあやってみよう，ということで，油層工学に関する面白そうな話を実装してみるサイト．
+興味は，多相流動とか，EORとか，もっと言えばCO2-EORとか．
 
 ## Buckley-Leverett Solution
 
