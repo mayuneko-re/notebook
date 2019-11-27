@@ -5,7 +5,7 @@
 ## 油層ノート
 
 - [Buckley-Leverettの解法で水油置換問題を解く](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic.ipynb)
-- [Buckley-Leverettの解法で水油置換問題を解く（その２：粘性と総体浸透率の感度解析）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
+- [Buckley-Leverettの解法で水油置換問題を解く（その２：粘性と相対浸透率の感度解析）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Basic_Sensitivity.ipynb)
 - [Buckley-Leverettの解法で水油置換問題を解く（その３：重力の影響込み）](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Buckley_Leverett_Gravity.ipynb)
 - [Koval法でミシブル置換をモデルする](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/Koval_method_for_miscible_displacement.ipynb)
 - [Peng-Robinsonの状態方程式でPTフラッシュ計算をする](https://nbviewer.jupyter.org/github/mayuneko-re/notebook/blob/master/colab/PT_Flash_Calculation.ipynb)
