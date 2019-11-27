@@ -18,6 +18,7 @@
 <ul class="posts">
   {% for post in site.posts %}
     <li>
+      <small>{{ page.date | date: "%-d %B %Y" }}</small>
       <a href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
     </li>
   {% endfor %}
