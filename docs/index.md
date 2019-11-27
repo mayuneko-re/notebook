@@ -18,7 +18,7 @@
 <ul class="posts">
   {% for post in site.posts %}
     <li>
-      <small>{{ post.date | date: "%-d %B %Y" }}</small>
+      <small>{{ post.date | date: "%-d %B %Y" }}</small><br>
       <a href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
     </li>
   {% endfor %}
